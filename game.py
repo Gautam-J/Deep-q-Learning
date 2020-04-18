@@ -38,14 +38,14 @@ class Player(pygame.sprite.Sprite):
             self.acc.x = 1.2
             self.game.reward -= 0.1
 
-        # keys = pygame.key.get_pressed()
+        keys = pygame.key.get_pressed()
 
-        # if keys[pygame.K_LEFT]:
-        #     self.acc.x = -1.2
-        #     self.game.reward -= 0.1
-        # elif keys[pygame.K_RIGHT]:
-        #     self.acc.x = 1.2
-        #     self.game.reward -= 0.1
+        if keys[pygame.K_LEFT]:
+            self.acc.x = -1.2
+            self.game.reward -= 0.1
+        elif keys[pygame.K_RIGHT]:
+            self.acc.x = 1.2
+            self.game.reward -= 0.1
 
         self.acc.x -= self.vel.x * 0.1
 
@@ -136,6 +136,9 @@ class Paddle:
                 self.reward += 5
                 print('hit')
                 self.ball.vel.y *= -1
+
+        if self.ball.pos.x > self.player.rect.left and self.ball.pos.x < self.player.rect.right:
+            self.reward += 1
 
         if self.ball.pos.y > self.height - self.ball.radius:
             self.reward -= 10
