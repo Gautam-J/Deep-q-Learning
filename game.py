@@ -4,10 +4,87 @@ import random
 import pygame
 
 
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+class Paddle:
 
-pygame.init()
-vec = pygame.math.Vector2
+    def __init__(self, render=False):
+
+        if not render:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+        pygame.init()
+
+        global vec
+        vec = pygame.math.Vector2
+
+        self.width = 640
+        self.height = 480
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.clock = pygame.time.Clock()
+
+    def reset(self):
+        self.all_sprites = pygame.sprite.Group()
+
+        self.player = Player(self)
+        self.ball = Ball(self)
+        self.all_sprites.add(self.player)
+        self.all_sprites.add(self.ball)
+
+        obs = self.get_obs()
+        self.reward = 0
+        self.done = False
+
+        return obs
+
+    def event(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.done = True
+                pygame.quit()
+                sys.exit(0)
+
+    def update(self):
+        self.reward = 0
+
+        self.player.update()
+        self.ball.update()
+
+        if self.player.pos.x < self.player.width / 2:
+            self.player.pos.x = self.player.width / 2
+            self.player.vel.x = 0
+        elif self.player.pos.x > self.width - self.player.width / 2:
+            self.player.pos.x = self.width - self.player.width / 2
+            self.player.vel.x = 0
+
+        if self.player.rect.colliderect(self.ball.rect):
+            if self.ball.pos.y < self.player.rect.top:
+                self.reward += 5
+                print('hit')
+                self.ball.vel.y *= -1
+
+        if self.ball.pos.x > self.player.rect.left and self.ball.pos.x < self.player.rect.right:
+            self.reward += 1
+
+        if self.ball.pos.y > self.height - self.ball.radius:
+            self.reward -= 10
+            self.done = True
+
+    def draw(self):
+        self.screen.fill((0, 0, 0))
+        self.all_sprites.draw(self.screen)
+
+        pygame.display.update()
+
+    def get_obs(self):
+        return round(self.player.pos.x, 1), self.ball.pos.x, self.ball.pos.y, self.ball.vel.x, self.ball.vel.y
+
+    def step(self, action):
+        self.action = action
+        self.event()
+        self.update()
+        self.draw()
+        obs = self.get_obs()
+
+        return obs, self.reward, self.done
 
 
 class Player(pygame.sprite.Sprite):
@@ -87,80 +164,6 @@ class Ball(pygame.sprite.Sprite):
 
         self.pos += self.vel
         self.rect.center = self.pos
-
-
-class Paddle:
-
-    def __init__(self):
-        self.width = 640
-        self.height = 480
-        self.screen = pygame.display.set_mode((self.width, self.height))
-        self.clock = pygame.time.Clock()
-
-    def reset(self):
-        self.all_sprites = pygame.sprite.Group()
-
-        self.player = Player(self)
-        self.ball = Ball(self)
-        self.all_sprites.add(self.player)
-        self.all_sprites.add(self.ball)
-
-        obs = self.get_obs()
-        self.reward = 0
-        self.done = False
-
-        return obs
-
-    def event(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.done = True
-                pygame.quit()
-                sys.exit(0)
-
-    def update(self):
-        self.reward = 0
-
-        self.player.update()
-        self.ball.update()
-
-        if self.player.pos.x < self.player.width / 2:
-            self.player.pos.x = self.player.width / 2
-            self.player.vel.x = 0
-        elif self.player.pos.x > self.width - self.player.width / 2:
-            self.player.pos.x = self.width - self.player.width / 2
-            self.player.vel.x = 0
-
-        if self.player.rect.colliderect(self.ball.rect):
-            if self.ball.pos.y < self.player.rect.top:
-                self.reward += 5
-                print('hit')
-                self.ball.vel.y *= -1
-
-        if self.ball.pos.x > self.player.rect.left and self.ball.pos.x < self.player.rect.right:
-            self.reward += 1
-
-        if self.ball.pos.y > self.height - self.ball.radius:
-            self.reward -= 10
-            self.done = True
-
-    def draw(self):
-        self.screen.fill((0, 0, 0))
-        self.all_sprites.draw(self.screen)
-
-        pygame.display.update()
-
-    def get_obs(self):
-        return round(self.player.pos.x, 1), self.ball.pos.x, self.ball.pos.y, self.ball.vel.x, self.ball.vel.y
-
-    def step(self, action):
-        self.action = action
-        self.event()
-        self.update()
-        self.draw()
-        obs = self.get_obs()
-
-        return obs, self.reward, self.done
 
 
 if __name__ == '__main__':
