@@ -1,0 +1,6 @@
+__pycache__
+*.npy
+.vscode
+*.png
+logs
+models
