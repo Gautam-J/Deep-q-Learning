@@ -167,7 +167,7 @@ class Ball(pygame.sprite.Sprite):
 
 
 if __name__ == '__main__':
-    env = Paddle()
+    env = Paddle(render=True)
     episodes = 50
 
     for e in range(1, episodes + 1):
