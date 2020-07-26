@@ -2,7 +2,7 @@ import numpy as np
 from game import Paddle
 from tensorflow.keras.models import load_model
 
-model = load_model('models\\avg_4951_e_490.h5')
+model = load_model('models/avg_4951_e_490.h5')
 
 env = Paddle(render=True)
 episodes = 10
